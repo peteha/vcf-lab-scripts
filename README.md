@@ -26,3 +26,15 @@ Options: `--user`, `--root`, `--folders "a b c"`, `--prompt`. Re-running `--appl
 ## Licence
 
 MIT
+
+## watch/
+
+Read-only screens for a long upgrade. Each runs in a Terminal on the lab desktop, so one screenshot shows the state without clicking through the UI.
+
+- `workload-watch.sh <ip> ... [--http URL]`: pings (and optionally GETs) workloads every second and logs each probe. Ctrl+C prints the loss summary: the evidence that a management domain upgrade did not touch the workloads.
+- `task-watch.sh --host <sddc-manager-fqdn>`: SDDC Manager's running tasks, with step counts, refreshed every 30 s. It uses the lab standard password through stdin, or `--prompt`.
+
+```sh
+curl -fsSLO https://raw.githubusercontent.com/peteha/vcf-lab-scripts/main/watch/workload-watch.sh
+curl -fsSLO https://raw.githubusercontent.com/peteha/vcf-lab-scripts/main/watch/task-watch.sh
+```
