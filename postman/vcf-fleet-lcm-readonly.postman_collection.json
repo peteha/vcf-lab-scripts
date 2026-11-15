@@ -15,11 +15,13 @@
     },
     {
       "key": "opsPassword",
-      "value": "VMware123!VMware123!"
+      "value": "VMware123!VMware123!",
+      "type": "secret"
     },
     {
       "key": "opsToken",
-      "value": ""
+      "value": "",
+      "type": "secret"
     },
     {
       "key": "fleetHost",
@@ -31,7 +33,8 @@
     },
     {
       "key": "fleetToken",
-      "value": ""
+      "value": "",
+      "type": "secret"
     },
     {
       "key": "componentId",
@@ -58,7 +61,14 @@
           }
         ],
         "url": {
-          "raw": "{{opsHost}}/casa/services"
+          "raw": "{{opsHost}}/casa/services",
+          "host": [
+            "{{opsHost}}"
+          ],
+          "path": [
+            "casa",
+            "services"
+          ]
         },
         "description": "VCF Operations service registry. Finds the VCF_FLEET_LCM entry and stores fleetHost and fleetKey. The response inlines PEM certificates with raw newlines, so the test script strips them before parsing.",
         "auth": {
@@ -83,8 +93,8 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "const data = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));",
-              "const s = (data.services || []).find(x => x.type === 'VCF_FLEET_LCM');",
+              "const body = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));",
+              "const s = (body.services || []).find(x => x.type === 'VCF_FLEET_LCM');",
               "pm.test('VCF_FLEET_LCM found', () => pm.expect(s).to.be.ok);",
               "if (s) {",
               "  pm.collectionVariables.set('fleetKey', s.key);",
@@ -111,7 +121,17 @@
           }
         ],
         "url": {
-          "raw": "{{opsHost}}/suite-api/api/auth/token/acquire"
+          "raw": "{{opsHost}}/suite-api/api/auth/token/acquire",
+          "host": [
+            "{{opsHost}}"
+          ],
+          "path": [
+            "suite-api",
+            "api",
+            "auth",
+            "token",
+            "acquire"
+          ]
         },
         "description": "Gets a VCF Operations token. It cannot be used directly against the fleet lifecycle API.",
         "body": {
@@ -134,9 +154,9 @@
             "type": "text/javascript",
             "exec": [
               "if (pm.response.code !== 200) { console.log('token acquire failed', pm.response.code, pm.response.text()); }",
-              "const data = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));",
-              "pm.test('token returned', () => pm.expect(data.token).to.be.ok);",
-              "pm.collectionVariables.set('opsToken', data.token);"
+              "const body = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));",
+              "pm.test('token returned', () => pm.expect(body.token).to.be.ok);",
+              "pm.collectionVariables.set('opsToken', body.token);"
             ]
           }
         }
@@ -160,7 +180,16 @@
           }
         ],
         "url": {
-          "raw": "{{opsHost}}/suite-api/api/versions/current"
+          "raw": "{{opsHost}}/suite-api/api/versions/current",
+          "host": [
+            "{{opsHost}}"
+          ],
+          "path": [
+            "suite-api",
+            "api",
+            "versions",
+            "current"
+          ]
         },
         "description": "Confirms the VCF Operations token from request 2 works (200 with the release name). If this fails, fix opsUser, opsPassword or authSource before going on."
       },
@@ -195,7 +224,17 @@
           }
         ],
         "url": {
-          "raw": "{{opsHost}}/suite-api/api/auth/token/exchange"
+          "raw": "{{opsHost}}/suite-api/api/auth/token/exchange",
+          "host": [
+            "{{opsHost}}"
+          ],
+          "path": [
+            "suite-api",
+            "api",
+            "auth",
+            "token",
+            "exchange"
+          ]
         },
         "description": "Exchanges the VCF Operations token for a JWT scoped to the fleet lifecycle service.",
         "body": {
@@ -217,9 +256,9 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "const data = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));",
-              "pm.test('jwtToken returned', () => pm.expect(data.jwtToken).to.be.ok);",
-              "pm.collectionVariables.set('fleetToken', data.jwtToken);"
+              "const body = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));",
+              "pm.test('jwtToken returned', () => pm.expect(body.jwtToken).to.be.ok);",
+              "pm.collectionVariables.set('fleetToken', body.jwtToken);"
             ]
           }
         }
@@ -236,7 +275,15 @@
           }
         ],
         "url": {
-          "raw": "{{fleetHost}}/fleet-lcm/v1/components"
+          "raw": "{{fleetHost}}/fleet-lcm/v1/components",
+          "host": [
+            "{{fleetHost}}"
+          ],
+          "path": [
+            "fleet-lcm",
+            "v1",
+            "components"
+          ]
         },
         "description": "Every VCF management services component with type, id, FQDN and version. Stores the first component's id as componentId; change it in the collection variables to look at another.",
         "auth": {
@@ -256,8 +303,8 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "const data = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));",
-              "const c = data.components || [];",
+              "const body = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));",
+              "const c = body.components || [];",
               "console.table(c.map(x => ({type: x.componentType, id: x.id, fqdn: x.fqdn, version: x.version})));",
               "if (c.length && !pm.collectionVariables.get('componentId')) pm.collectionVariables.set('componentId', c[0].id);"
             ]
@@ -276,7 +323,16 @@
           }
         ],
         "url": {
-          "raw": "{{fleetHost}}/fleet-lcm/v1/components/{{componentId}}"
+          "raw": "{{fleetHost}}/fleet-lcm/v1/components/{{componentId}}",
+          "host": [
+            "{{fleetHost}}"
+          ],
+          "path": [
+            "fleet-lcm",
+            "v1",
+            "components",
+            "{{componentId}}"
+          ]
         },
         "description": "Detail for componentId. Stores sddcLcmId, needed for backup listing.",
         "auth": {
@@ -296,8 +352,8 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "const data = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));",
-              "if (data.sddcLcmId) pm.collectionVariables.set('sddcLcmId', data.sddcLcmId);"
+              "const body = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));",
+              "if (body.sddcLcmId) pm.collectionVariables.set('sddcLcmId', body.sddcLcmId);"
             ]
           }
         }
@@ -314,7 +370,23 @@
           }
         ],
         "url": {
-          "raw": "{{fleetHost}}/fleet-lcm/v1/sddc-lcms/{{sddcLcmId}}/backups?componentId={{componentId}}"
+          "raw": "{{fleetHost}}/fleet-lcm/v1/sddc-lcms/{{sddcLcmId}}/backups?componentId={{componentId}}",
+          "host": [
+            "{{fleetHost}}"
+          ],
+          "path": [
+            "fleet-lcm",
+            "v1",
+            "sddc-lcms",
+            "{{sddcLcmId}}",
+            "backups"
+          ],
+          "query": [
+            {
+              "key": "componentId",
+              "value": "{{componentId}}"
+            }
+          ]
         },
         "description": "Backups available for componentId, each with its point-in-time entries and SFTP path. Read-only: this collection never starts a backup or restore.",
         "auth": {
@@ -340,7 +412,16 @@
           }
         ],
         "url": {
-          "raw": "{{fleetHost}}/fleet-lcm/v1/tasks/{{taskId}}"
+          "raw": "{{fleetHost}}/fleet-lcm/v1/tasks/{{taskId}}",
+          "host": [
+            "{{fleetHost}}"
+          ],
+          "path": [
+            "fleet-lcm",
+            "v1",
+            "tasks",
+            "{{taskId}}"
+          ]
         },
         "description": "Status of a fleet lifecycle task (SUCCEEDED, FAILED, CANCELLED or still running). Set taskId from the VCF Operations task detail.",
         "auth": {
@@ -360,7 +441,7 @@
           "script": {
             "type": "text/javascript",
             "exec": [
-              "const data = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));console.log('status', data.status);"
+              "const body = JSON.parse(pm.response.text().replace(/[\\r\\n]/g, ''));console.log('status', body.status);"
             ]
           }
         }
