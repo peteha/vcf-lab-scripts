@@ -51,4 +51,4 @@ Turn off SSL certificate verification (Settings > General) for lab certificates,
 
 ## vsp/
 
-`vsp-watch.sh`: watch the VCF services runtime (VSP) Kubernetes cluster settle after a patch: nodes, pods not Running, restarts and recent warning events, refreshed every 15 s. `--namespaces` lists namespaces with pod counts; `--logs <ns> [pod-prefix]` follows logs. Read-only. Run it on a VSP control-plane node as root (`ssh vmware-system-user@<node>`, `sudo -i`), per the VCF 9.1 docs. Copy it from the lab desktop with `scp vsp-watch.sh vmware-system-user@<node>:/tmp/`.
+`vsp-watch.sh`: watch the VCF services runtime (VSP) Kubernetes cluster settle after a patch: nodes, pods not Running, restarts and recent warning events, refreshed every 15 s. `--namespaces` lists namespaces with pod counts; `--logs <ns> [pod-prefix]` follows logs. Read-only. Run it on a VSP control-plane node as root (`ssh vmware-system-user@<control-plane-ip>` from VCF Ops > VCF services runtime > Nodes; the runtime FQDN can land on a worker, then `sudo -i`), per the VCF 9.1 docs. Copy it from the lab desktop with `scp vsp-watch.sh vmware-system-user@<node>:/tmp/`.
