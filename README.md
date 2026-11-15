@@ -9,14 +9,14 @@ Turns an Ubuntu VM into an SFTP backup target for SDDC Manager and the VCF fleet
 ```sh
 curl -fsSLO https://raw.githubusercontent.com/peteha/vcf-lab-scripts/main/backup/sftp-backup-target.sh
 less sftp-backup-target.sh                  # read it first
-sudo bash sftp-backup-target.sh --check     # read-only: what is there now
-sudo bash sftp-backup-target.sh --apply     # creates the user (lab standard password), folders and sshd drop-in
-sudo bash sftp-backup-target.sh --list      # after backups run: what landed, with sizes
+bash sftp-backup-target.sh --check          # read-only: what is there now
+bash sftp-backup-target.sh --apply          # re-runs itself under sudo; creates the user, folders and sshd drop-in
+bash sftp-backup-target.sh --list           # after backups run: what landed, with sizes
 ```
 
 `--apply` creates:
 - an SFTP-only user, `vcfbackup`. It has no shell, is chrooted to `/backups`, and its password is the lab standard password, `VMware123!VMware123!`, set through `chpasswd` on stdin. Add `--prompt` to type your own;
-- one folder per backup source: `sddc-fleet`, `vcenter-mgmt`, `vcenter-wld01`, `nsx-mgmt`, `nsx-wld01`;
+- one folder per backup source: `fleet` (fleet and Automation), `sddc-nsx` (SDDC Manager, which also sets NSX's target), `vcenter-mgmt`, `vcenter-wld01`;
 - an sshd drop-in at `/etc/ssh/sshd_config.d/50-vcf-sftp-backup.conf`. It is checked with `sshd -t` before ssh restarts, and removed again if the check fails.
 
 It then prints the server address, port, user, the folder for each product, and the host key fingerprints (SHA256) to check when each product asks you to accept the server.
