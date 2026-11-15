@@ -61,7 +61,9 @@ warn() { printf '  warn  %s\n' "$*"; }
 # Re-run under sudo with the lab standard password on stdin (never in argv).
 elevate() {
   [ "$(id -u)" -eq 0 ] && return 0
-  printf '%s\n' "$LAB_PASSWORD" | exec sudo -S -p '' bash "$SELF" "${ARGS[@]}"
+  # Not exec: in a pipeline exec only replaces the subshell, so exit explicitly.
+  printf '%s\n' "$LAB_PASSWORD" | sudo -S -p '' bash "$SELF" "${ARGS[@]}"
+  exit $?
 }
 need_root() { [ "$(id -u)" -eq 0 ] || { echo "run with sudo" >&2; exit 1; }; }
 
