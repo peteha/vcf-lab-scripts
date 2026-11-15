@@ -14,15 +14,19 @@
 #   --root /backups
 #   --folders "sddc-fleet vcenter-mgmt vcenter-wld01 nsx-mgmt nsx-wld01"
 #
-# The password is never on the command line or in this file. --apply runs
-# `passwd`, so you type it at the console. Re-running --apply is safe: it skips
-# what exists, and asks for a password only if the user has none.
+# Password: the hosted VCF lab's standard password, VMware123!VMware123!, is
+# set through chpasswd on stdin, so it never appears on a command line or in
+# the process list. Use --prompt to type your own at the passwd prompt
+# instead. Re-running --apply is safe: it skips what exists, and leaves an
+# existing password alone.
 set -euo pipefail
 
 MODE=check
 USER_NAME=vcfbackup
 ROOT=/backups
 FOLDERS="sddc-fleet vcenter-mgmt vcenter-wld01 nsx-mgmt nsx-wld01"
+LAB_PASSWORD='VMware123!VMware123!'
+PROMPT=no
 DROPIN=/etc/ssh/sshd_config.d/50-vcf-sftp-backup.conf
 
 while [ $# -gt 0 ]; do
@@ -30,10 +34,11 @@ while [ $# -gt 0 ]; do
     --check) MODE=check ;;
     --apply) MODE=apply ;;
     --list)  MODE=list ;;
+    --prompt) PROMPT=yes ;;
     --user) USER_NAME="$2"; shift ;;
     --root) ROOT="$2"; shift ;;
     --folders) FOLDERS="$2"; shift ;;
-    -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,24p' "$0"; exit 0 ;;
     *) echo "unknown option: $1 (try --help)" >&2; exit 2 ;;
   esac
   shift
@@ -93,8 +98,13 @@ apply() {
   if passwd -S "$USER_NAME" | awk '{exit !($2=="P")}'; then
     ok "password already set (not changed)"
   else
-    echo "  Set the password for $USER_NAME now. Type it here; it is not shown or logged."
-    passwd "$USER_NAME"
+    if [ "$PROMPT" = yes ]; then
+      echo "  Set the password for $USER_NAME now. Type it here; it is not shown or logged."
+      passwd "$USER_NAME"
+    else
+      printf '%s:%s\n' "$USER_NAME" "$LAB_PASSWORD" | chpasswd
+      ok "password set to the lab standard password (through chpasswd on stdin)"
+    fi
   fi
 
   say "folders"
@@ -126,7 +136,7 @@ EOF
   say "enter these in each product"
   ip=$(primary_ip || echo '<this VM address>')
   printf '  server     %s   port 22   protocol SFTP\n' "$ip"
-  printf '  user       %s   (the password you just set)\n' "$USER_NAME"
+  printf '  user       %s   password: the lab standard password (or yours, with --prompt)\n' "$USER_NAME"
   printf '  directory  /<folder>, relative to the chroot:\n'
   for d in $FOLDERS; do printf '               /%s\n' "$d"; done
   printf '  fingerprint (SHA256):\n'; fingerprints
