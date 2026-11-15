@@ -38,3 +38,13 @@ Read-only screens for a long upgrade. Each runs in a Terminal on the lab desktop
 curl -fsSLO https://raw.githubusercontent.com/peteha/vcf-lab-scripts/main/watch/workload-watch.sh
 curl -fsSLO https://raw.githubusercontent.com/peteha/vcf-lab-scripts/main/watch/task-watch.sh
 ```
+
+## postman/
+
+`vcf-fleet-lcm-readonly.postman_collection.json`: read-only checks against the VCF 9.1 fleet lifecycle API, following the documented token flow. Import it in Postman with **Import > Link**:
+
+```
+https://raw.githubusercontent.com/peteha/vcf-lab-scripts/main/postman/vcf-fleet-lcm-readonly.postman_collection.json
+```
+
+Turn off SSL certificate verification (Settings > General) for lab certificates, then run requests 1 to 3 in order: they find the fleet lifecycle service, get a VCF Operations token, and exchange it for a fleet lifecycle JWT. Requests 4 to 7 list components, component detail, backups and a task's status. Nothing in it starts a backup or a restore.
